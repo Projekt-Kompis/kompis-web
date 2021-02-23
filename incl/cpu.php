@@ -19,4 +19,12 @@ class CPU {
 		$type->execute(['id' => $this->id]);
 		return $type->fetchColumn();
     }
+
+    public function getTDP(){
+        $type = $this->db->prepare("SELECT part_cpu.tdp
+            FROM part_cpu
+            WHERE part_cpu.part_id = :id");
+        $type->execute(['id' => $this->id]);
+        return $type->fetchColumn();
+    }
 }

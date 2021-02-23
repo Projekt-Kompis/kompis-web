@@ -23,6 +23,27 @@ class MainLib {
 			return false;
 		return $_SESSION["part_{$type}"];
 	}
+	public static function getTotalTDP($db){
+		$tdp = 0;
+		if(MainLib::getCurrentChoiceID('cpu')){ //10W base + 1W per 1080 RPM
+			$cpu = new CPU($db, MainLib::getPartIDFromListing($db, MainLib::getCurrentChoiceID('cpu')));
+			$tdp += $cpu->getTDP();
+		} 
+		if(MainLib::getCurrentChoiceID('gpu')){ //10W base + 1W per 1080 RPM
+			$gpu = new GPU($db, MainLib::getPartIDFromListing($db, MainLib::getCurrentChoiceID('gpu')));
+			$tdp += 10 + round($gpu->getTDP() / 1080);
+		} 
+		if(MainLib::getCurrentChoiceID('motherboard'))
+			$tdp += 70;
+		if(MainLib::getCurrentChoiceID('ram'))
+			$tdp += 20;
+		if(MainLib::getCurrentChoiceID('storage')){ //10W base + 1W per 1080 RPM
+			$storage = new Storage($db, MainLib::getPartIDFromListing($db, MainLib::getCurrentChoiceID('storage')));
+			$tdp += 10 + round($storage->getRPM() / 1080);
+		} 
+		return $tdp;
+		
+	}
 	public static function getBasicListingInfo($db, $id){
 		$listings = $db->prepare("SELECT part.model, listing.price, listing.store, listing.store_url
 			FROM listing
@@ -81,6 +102,8 @@ class MainLib {
 				break;
 			case 'psu':
 				$typespecific = ", part_psu.wattage";
+				$where .= "AND part_psu.wattage = :wattage ";
+				$pdoArray['wattage'] = MainLib::getTotalTDP($db);
 				break;
 			case 'ram':
 				$motherboard = MainLib::getCurrentChoiceID('motherboard');

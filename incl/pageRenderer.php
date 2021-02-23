@@ -133,7 +133,7 @@ class PageRenderer {
 	          <td>{$listing['location']}</td>";
 	    switch($listing['type']){
 			case 'case':
-				echo '<td>Druh základní desky</td>';
+				echo "<td>{$listing['motherboard_form_factor']}</td>";
 				break;
 			case 'cpu':
 				$ratio = round(($listing['userbenchmark_score'] / $listing['price']) * 1000);
@@ -144,9 +144,10 @@ class PageRenderer {
 					<td>{$ratio}</td>";
 				break;
 			case 'gpu':
-				echo '<td>Paměť</td>';
-				echo '<td>TDP</td>';
-				echo '<td>Poměr cena/výkon</td>';
+				$ratio = round(($listing['userbenchmark_score'] / $listing['price']) * 1000);
+				echo "<td>{$listing['vram']}</td>
+				<td>{$listing['tdp']}</td>
+				<td>{$ratio}</td>";
 				break;
 			case 'motherboard':
 				echo "<td>{$listing['motherboard_form_factor']}</td>
@@ -154,10 +155,13 @@ class PageRenderer {
 					<td>DDR{$listing['ddr_version']}</td>";
 				break;
 			case 'os':
-				echo '<td>S fakturou</td>';
+				if($listing['invoice'])
+					echo '<td>Ano</td>';
+				else
+					echo '<td>Ne</td>';
 				break;
 			case 'psu':
-				echo '<td>Výkon</td>';
+				echo "<td>{$listing['wattage']} W</td>";
 				break;
 			case 'ram':
 				echo "<td>{$listing['size']}</td>
@@ -165,9 +169,9 @@ class PageRenderer {
 					<td>{$listing['speed']} MHz</td>";
 				break;
 			case 'storage':
-				echo '<td>Druh úložiště</td>';
-				echo '<td>Velikost</td>';
-				echo '<td>Konektor</td>';
+				echo '<td>{$listing[\'storage_type\']}</td>';
+				echo '<td>{$listing[\'size\']}</td>';
+				echo '<td>{$listing[\'connector\']}</td>';
 				break;
 		}
 	    echo "<td><a href=\"view_listing.php?id={$listing['id']}\">&gt;&gt;</td>";
