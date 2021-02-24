@@ -13,12 +13,12 @@ class Storage {
     }
 
     public function getRPM(){
-    	$info = $this->db->prepare("SELECT part_storage.rpm, part_storage.type
+    	$info = $this->db->prepare("SELECT part_storage.rpm, part_storage.storage_type
 			FROM part_storage
 			WHERE part_storage.part_id = :id");
 		$info->execute(['id' => $this->id]);
 		$info = $info->fetch();
-        if($info['type'] == 'ssd')
+        if($info['storage_type'] == 'ssd')
             return 0;
         return $info['rpm'];
     }

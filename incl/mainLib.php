@@ -57,7 +57,7 @@ class MainLib {
 		if(!isset($tables[$type]))
 			return false;
 
-		$where = "";
+		$where = $typespecific = "";
 		$pdoArray = [];
 		switch($type){
 			case 'case':
@@ -97,6 +97,9 @@ class MainLib {
 				}
 				$typespecific = ", part_motherboard.motherboard_form_factor, part_motherboard.cpu_socket, part_motherboard.ddr_version";
 				break;
+			case 'optical':
+				$typespecific = ", part_optical.optical_type";
+				break;
 			case 'os':
 				$typespecific = ", part_os.invoice";
 				break;
@@ -115,7 +118,7 @@ class MainLib {
 				$typespecific = ", part_ram.size, part_ram.ddr_version, part_ram.speed";
 				break;
 			case 'storage':
-				$typespecific = ", part_storage.type, part_storage.size, part_storage.connector";
+				$typespecific = ", part_storage.storage_type, part_storage.size, part_storage.connector";
 				break;
 		}
 		if($incompatible){

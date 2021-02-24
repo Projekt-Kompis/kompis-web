@@ -106,6 +106,9 @@ class PageRenderer {
 				echo '<th scope="col">Socket</th>';
 				echo '<th scope="col">Druh paměti RAM</th>';
 				break;
+			case 'optical':
+				echo '<th scope="col">Druh mechaniky</th>';
+				break;
 			case 'os':
 				echo '<th scope="col">S fakturou</th>';
 				break;
@@ -163,6 +166,9 @@ class PageRenderer {
 					<td>{$listing['cpu_socket']}</td>
 					<td>DDR{$listing['ddr_version']}</td>";
 				break;
+			case 'optical':
+				echo "<td>{$listing['optical_type']}";
+				break;
 			case 'os':
 				if($listing['invoice'])
 					echo '<td>Ano</td>';
@@ -173,14 +179,14 @@ class PageRenderer {
 				echo "<td>{$listing['wattage']} W</td>";
 				break;
 			case 'ram':
-				echo "<td>{$listing['size']}</td>
+				echo "<td>"; PageRenderer::renderSizeWithUnit($listing['size']); echo "</td>
 					<td>DDR{$listing['ddr_version']}</td>
 					<td>{$listing['speed']} MHz</td>";
 				break;
 			case 'storage':
-				echo '<td>{$listing[\'storage_type\']}</td>';
-				echo '<td>{$listing[\'size\']}</td>';
-				echo '<td>{$listing[\'connector\']}</td>';
+				echo "<td>{$listing['storage_type']}</td>
+					<td>"; PageRenderer::renderSizeWithUnit($listing['size']); echo "</td>
+					<td>{$listing['connector']}</td>";
 				break;
 		}
 	    echo "<td><a href=\"view_listing.php?id={$listing['id']}\">&gt;&gt;</td>";
@@ -229,5 +235,17 @@ class PageRenderer {
           echo "</td></tr>";
           }
           
+	}
+	public static function renderSizeWithUnit($size){
+		if($size >= 1048576){
+			$size = round($size / 1048576);
+			echo "{$size} TB";
+		}
+		elseif($size >= 1024){
+			$size = round($size / 1024);
+			echo "{$size} GB";
+		}
+		else
+			echo "{$size} MB";
 	}
 }
