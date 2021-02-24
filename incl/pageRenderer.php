@@ -126,7 +126,10 @@ class PageRenderer {
 	}
 	public static function renderListing($listing){
 		echo "<tr>
-			<th scope=\"row\">{$listing['model']}</th>
+			<th scope=\"row\">{$listing['model']}";
+		if($listing['model'] != $listing['name'])
+			echo "<br>({$listing['name']})";
+		echo "</th>
 	          <td>{$listing['item_condition']}</td>
 	          <td>{$listing['price']}</td>
 	          <td>{$listing['store']}</td>
@@ -136,7 +139,10 @@ class PageRenderer {
 				echo "<td>{$listing['motherboard_form_factor']}</td>";
 				break;
 			case 'cpu':
-				$ratio = round(($listing['userbenchmark_score'] / $listing['price']) * 1000);
+				if($listing['price'] != 0)
+					$ratio = round(($listing['userbenchmark_score'] / $listing['price']) * 1000);
+				else
+					$ratio = 0;
 				echo "<td>{$listing['cpu_socket']}</td>
 					<td>{$listing['frequency']}</td>
 					<td>{$listing['core_count']}</td>
@@ -144,7 +150,10 @@ class PageRenderer {
 					<td>{$ratio}</td>";
 				break;
 			case 'gpu':
-				$ratio = round(($listing['userbenchmark_score'] / $listing['price']) * 1000);
+				if($listing['price'] != 0)
+					$ratio = round(($listing['userbenchmark_score'] / $listing['price']) * 1000);
+				else
+					$ratio = 0;
 				echo "<td>{$listing['vram']}</td>
 				<td>{$listing['tdp']}</td>
 				<td>{$ratio}</td>";
@@ -179,16 +188,16 @@ class PageRenderer {
 	    PageRenderer::renderAddButton($listing['id']);
 	    echo "</tr>";
 	}
-	public static function renderListingsInfo($db, $type){
-		foreach(MainLib::getCompatibleListings($db, $type) as &$listing){
+	public static function renderListingsInfo($db, $type, $incompatible){
+		foreach(MainLib::getListings($db, $type, $incompatible) as &$listing){
 			PageRenderer::renderListing($listing);
 		}
 	}
-	public static function renderListings($db, $type){
+	public static function renderListings($db, $type, $incompatible){
 		
 
 		PageRenderer::renderListingsHeader($type);
-		PageRenderer::renderListingsInfo($db, $type);
+		PageRenderer::renderListingsInfo($db, $type, $incompatible);
 		?>
 
 		      </tbody>

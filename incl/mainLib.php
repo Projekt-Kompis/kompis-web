@@ -52,7 +52,7 @@ class MainLib {
 		$listings->execute(['id' => $id]);
 		return $listings->fetch();
 	}
-	public static function getCompatibleListings($db, $type){
+	public static function getListings($db, $type, $incompatible = false){
 		$tables = ['case' => 'part_case', 'cpu' => 'part_cpu', 'gpu' => 'part_gpu', 'motherboard' => 'part_motherboard', 'optical' => 'part_optical', 'os' => 'part_os', 'psu' => 'part_psu', 'ram' => 'part_ram', 'storage' => 'part_storage'];
 		if(!isset($tables[$type]))
 			return false;
@@ -118,7 +118,11 @@ class MainLib {
 				$typespecific = ", part_storage.type, part_storage.size, part_storage.connector";
 				break;
 		}
-		$listings = $db->prepare("SELECT part.model, part.type, listing.item_condition, listing.price, listing.store, listing.location, listing.id {$typespecific}
+		if($incompatible){
+			$where = "";
+			$pdoArray = [];
+		}
+		$listings = $db->prepare("SELECT part.model, part.type, listing.item_condition, listing.price, listing.store, listing.location, listing.id, listing.name {$typespecific}
 			FROM listing
 			INNER JOIN part ON listing.part_id = part.id
 			INNER JOIN {$tables[$type]} ON {$tables[$type]}.part_id = part.id
