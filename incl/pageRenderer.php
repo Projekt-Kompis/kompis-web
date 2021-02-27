@@ -36,9 +36,51 @@ class PageRenderer {
 			            </li>
 			          </ul>
 			          <ul class="navbar-nav d-flex">
-			            <li class="nav-item">
-			              <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Přihlásit se</a>
-			            </li>
+			          	<?php
+			          	if(AccountManager::isAccountLoggedIn()){?>
+			          		<li class="nav-item dropdown">
+					          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+					            <?= AccountManager::getLoggedinUsername($db) ?>
+					          </a>
+					          <div class="dropdown-menu dropdown-menu-end">
+								  <a class="dropdown-item" href="#">Můj účet</a>
+								  <a class="dropdown-item" href="#">Moje sestavy</a>
+								  <div class="dropdown-divider"></div>
+								  <a class="dropdown-item" href="logout.php">Odhlásit se</a>
+								  <!--<a class="dropdown-item" href="#">Zapomenuté heslo</a>-->
+								</div>
+					        </li>
+			          	<?php }else{?>
+				            <li class="nav-item dropdown">
+					          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+					            Přihlásit se
+					          </a>
+					          <div class="dropdown-menu dropdown-menu-end">
+								  <form class="px-4 py-3" method="post" action="login.php">
+								    <div class="mb-3">
+								      <label for="usernameForm" class="form-label">Uživatelské jméno</label>
+								      <input type="text" class="form-control" id="usernameForm" placeholder="Uživatelské jméno" name="username">
+								    </div>
+								    <div class="mb-3">
+								      <label for="passwordForm" class="form-label">Heslo</label>
+								      <input type="password" class="form-control" id="passwordForm" placeholder="Heslo" name="password">
+								    </div>
+								    <div class="mb-3">
+								      <!--<div class="form-check">
+								        <input type="checkbox" class="form-check-input" id="dropdownCheck">
+								        <label class="form-check-label" for="dropdownCheck">
+								          Remember me
+								        </label>
+								      </div>-->
+								    </div>
+								    <button type="submit" class="btn btn-primary">Přihlásit se</button>
+								  </form>
+								  <div class="dropdown-divider"></div>
+								  <a class="dropdown-item" href="create_account.php">Nový uživatel? Vytvořit účet</a>
+								  <!--<a class="dropdown-item" href="#">Zapomenuté heslo</a>-->
+								</div>
+					        </li>
+					    <?php } ?>
 			          </ul>
 			        </div>
 			      </div>
@@ -247,5 +289,41 @@ class PageRenderer {
 		}
 		else
 			echo "{$size} MB";
+	}
+	public static function renderRegistrationForm(){ ?>
+		<form method="post">
+            <div class="mb-3">
+              <label for="usernameForm" class="form-label">Uživatelské jméno</label>
+              <input type="text" class="form-control" id="usernameForm" name="username">
+            </div>
+            <div class="mb-3">
+              <label for="emailForm" class="form-label">Emailová adresa</label>
+              <input type="email" class="form-control" id="emailForm" aria-describedby="emailHelp" name="email">
+              <div id="emailHelp" class="form-text">Vaše emailová adresa nebude sdílena s Minecrafákem.</div>
+            </div>
+            <div class="mb-3">
+              <label for="passwordForm" class="form-label">Heslo</label>
+              <input type="password" class="form-control" id="passwordForm" aria-describedby="passwordHelp" name="password">
+              <div id="passwordHelp" class="form-text">Doporučujeme něco bezpečného. (třeba ABCabc123)</div>
+            </div>
+            <button type="submit" class="btn btn-primary">Vytvořit účet</button>
+          </form>
+	<?php }
+	public static function renderRegistrationResponse($db, $username, $email, $password){
+		switch(AccountManager::createAccount($db, $username, $email, $password)){
+			case 0:
+				echo "Účet úspěšně vytvořen.";
+				break;
+			case -2:
+				echo "Toto uživatelské jméno je již použité.";
+				break;
+			case -3:
+				echo "Tato emailová adresa je již použitá.";
+				break;
+			default:
+				echo "Něco se zvrtlo.";
+				break;
+		}
+
 	}
 }

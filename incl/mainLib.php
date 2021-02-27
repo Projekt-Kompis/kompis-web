@@ -1,8 +1,5 @@
 <?php
 class MainLib {
-	public static function isUserLoggedIn($db){
-		return isset($_SESSION["userID"]);
-	}
 	public static function getListingType($db, $id){
 		$type = $db->prepare("SELECT part.type
 			FROM listing
