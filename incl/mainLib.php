@@ -15,39 +15,69 @@ class MainLib {
 		$type->execute(['id' => $id]);
 		return $type->fetchColumn();
 	}
-	public static function getCurrentChoiceID($type){
-		if(!isset($_SESSION["part_{$type}"]) || empty($_SESSION["part_{$type}"]))
-			return false;
-		return $_SESSION["part_{$type}"];
+	public static function getCurrentChoiceArray($type){
+		$partarray = [];
+		if(!isset($_SESSION["part"]) || empty($_SESSION["part"]))
+			return [];
+		foreach($_SESSION['part'] AS &$part)
+			$partarray[] = preg_replace('[^0-9]', '', $part);
+		return $partarray;
 	}
 	public static function getTotalTDP($db){
 		$tdp = 0;
-		if(MainLib::getCurrentChoiceID('cpu')){ //10W base + 1W per 1080 RPM
-			$cpu = new CPU($db, MainLib::getPartIDFromListing($db, MainLib::getCurrentChoiceID('cpu')));
-			$tdp += $cpu->getTDP();
-		} 
-		if(MainLib::getCurrentChoiceID('gpu')){ //10W base + 1W per 1080 RPM
-			$gpu = new GPU($db, MainLib::getPartIDFromListing($db, MainLib::getCurrentChoiceID('gpu')));
-			$tdp += 10 + round($gpu->getTDP() / 1080);
-		} 
-		if(MainLib::getCurrentChoiceID('motherboard'))
-			$tdp += 70;
-		if(MainLib::getCurrentChoiceID('ram'))
-			$tdp += 20;
-		if(MainLib::getCurrentChoiceID('storage')){ //10W base + 1W per 1080 RPM
-			$storage = new Storage($db, MainLib::getPartIDFromListing($db, MainLib::getCurrentChoiceID('storage')));
-			$tdp += 10 + round($storage->getRPM() / 1080);
-		} 
+		$cpus = MainLib::getCurrentChoicesInfo($db, 'cpu');
+		if($cpus)
+			foreach($cpus as &$cpu){
+				$cpu = new CPU($db, MainLib::getPartIDFromListing($db, $cpu['id']));
+				$tdp += $cpu->getTDP();
+			}
+
+		$gpus = MainLib::getCurrentChoicesInfo($db, 'gpu');
+		if($gpus)
+			foreach($gpus as &$gpu){
+				$gpu = new GPU($db, MainLib::getPartIDFromListing($db, $gpu['id']));
+				$tdp += $gpu->getTDP();
+			}
+
+		$motherboards = MainLib::getCurrentChoicesInfo($db, 'motherboard');
+		if($motherboards)
+			foreach($motherboard as &$motherboards){
+				$tdp += 70;
+			}
+
+		$rams = MainLib::getCurrentChoicesInfo($db, 'ram');
+		if($rams)
+			foreach($ram as &$rams){
+				$tdp += 20;
+			}
+
+		$storages = MainLib::getCurrentChoicesInfo($db, 'storage');
+		if($rams)
+			foreach($storage as &$storages){
+				$storage = new Storage($db, MainLib::getPartIDFromListing($db, $storage['id']));
+				$tdp += 10 + round($storage->getRPM() / 1080);
+			}
+			
 		return $tdp;
 		
 	}
-	public static function getBasicListingInfo($db, $id){
-		$listings = $db->prepare("SELECT part.model, listing.price, listing.store, listing.store_url
+	public static function getCurrentChoicesInfo($db, $type, $single = false){
+		$choicesArray = MainLib::getCurrentChoiceArray($type);
+		if(empty($choicesArray))
+			return [];
+		$choices = implode(',', $choicesArray);
+		$listings = $db->prepare("SELECT part.model, listing.price, listing.store, listing.store_url, listing.id
 			FROM listing
 			INNER JOIN part ON listing.part_id = part.id
-			WHERE listing.id = :id");
-		$listings->execute(['id' => $id]);
-		return $listings->fetch();
+			WHERE listing.id IN ($choices) AND type = :type ");
+		$listings->execute(['type' => $type]);
+		return $listings->fetchAll();
+	}
+	public static function getCurrentChoiceID($db, $type){
+		$choice = MainLib::getCurrentChoicesInfo($db, $type, true);
+		if(empty($choice))
+			return false;
+		return $choice['id'];
 	}
 	public static function getListings($db, $type, $incompatible = false){
 		$tables = ['case' => 'part_case', 'cpu' => 'part_cpu', 'gpu' => 'part_gpu', 'motherboard' => 'part_motherboard', 'optical' => 'part_optical', 'os' => 'part_os', 'psu' => 'part_psu', 'ram' => 'part_ram', 'storage' => 'part_storage'];
@@ -58,7 +88,7 @@ class MainLib {
 		$pdoArray = [];
 		switch($type){
 			case 'case':
-				$motherboard = MainLib::getCurrentChoiceID('motherboard');
+				$motherboard = MainLib::getCurrentChoiceID($db, 'motherboard');
 				if($motherboard){
 					$motherboard = new Motherboard($db, MainLib::getPartIDFromListing($db, $motherboard));
 					$where = "AND part_case.motherboard_form_factor = :motherboardFormFactor";
@@ -67,7 +97,7 @@ class MainLib {
 				$typespecific = ", part_case.motherboard_form_factor";
 				break;
 			case 'cpu':
-				$motherboard = MainLib::getCurrentChoiceID('motherboard');
+				$motherboard = MainLib::getCurrentChoiceID($db, 'motherboard');
 				if($motherboard){
 					$motherboard = new Motherboard($db, MainLib::getPartIDFromListing($db, $motherboard));
 					$where = "AND part_cpu.cpu_socket = :cpuSocket";
@@ -80,13 +110,13 @@ class MainLib {
 				break;
 			case 'motherboard':
 				$where = "";
-				$cpu = MainLib::getCurrentChoiceID('cpu');
+				$cpu = MainLib::getCurrentChoiceID($db, 'cpu');
 				if($cpu){
 					$cpu = new CPU($db, MainLib::getPartIDFromListing($db, $cpu));
 					$where .= "AND part_motherboard.cpu_socket = :cpuSocket ";
 					$pdoArray['cpuSocket'] = $cpu->getCPUSocket();
 				}
-				$ram = MainLib::getCurrentChoiceID('ram');
+				$ram = MainLib::getCurrentChoiceID($db, 'ram');
 				if($ram){
 					$ram = new RAM($db, MainLib::getPartIDFromListing($db, $ram));
 					$where .= "AND part_motherboard.ddr_version = :ddr_version ";
@@ -106,7 +136,7 @@ class MainLib {
 				$pdoArray['wattage'] = MainLib::getTotalTDP($db);
 				break;
 			case 'ram':
-				$motherboard = MainLib::getCurrentChoiceID('motherboard');
+				$motherboard = MainLib::getCurrentChoiceID($db, 'motherboard');
 				if($motherboard){
 					$motherboard = new Motherboard($db, MainLib::getPartIDFromListing($db, $motherboard));
 					$where = "AND part_ram.ddr_version = :ddr_version ";

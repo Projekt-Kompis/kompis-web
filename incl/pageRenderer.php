@@ -103,8 +103,8 @@ class PageRenderer {
 	public static function renderAddButton($id){
 		echo "<form action=\"add_listing.php\"><button type=\"submit\" class=\"btn btn-primary\" name=\"id\" value=\"$id\">Přidat</button></form>";
 	}
-	public static function renderRemoveButton($type){
-		echo "<form action=\"remove_listing.php\"><button type=\"submit\" class=\"btn btn-primary\" name=\"type\" value=\"$type\">Odebrat</button></form>";
+	public static function renderRemoveButton($id){
+		echo "<form action=\"remove_listing.php\"><button type=\"submit\" class=\"btn btn-primary\" name=\"id\" value=\"$id\">Odebrat</button></form>";
 	}
 	public static function renderListingsHeader($type){
 		?>
@@ -254,28 +254,30 @@ class PageRenderer {
 		<?php
 	}
 	public static function renderCurrentChoice($db, $type){
-		$choice = MainLib::getCurrentChoiceID($type);
-		echo "<tr>
+		$choices = MainLib::getCurrentChoicesInfo($db, $type);
+		foreach($choices as &$listing){
+			echo "<tr>
           <th scope=\"row\">{$type}</th>
-          <td>";
-          if(!$choice){
-          	PageRenderer::renderViewButton($type);
-	        echo "</td>
-	          <td></td>
-	          <td></td>
-	          <td></td>
-	          <td></td>
-	        </tr>";
-          }else{
-          	$listing = MainLib::getBasicListingInfo($db, $choice);
-          	echo "{$listing['model']}</td>
+          <td>{$listing['model']}</td>
           <td>{$listing['price']} Kč</td>
           <td>{$listing['store']}</td>
           <td><a href=\"{$listing['store_url']}\">&gt;&gt;</a></td>
           <td>";
-          PageRenderer::renderRemoveButton($type);
+          PageRenderer::renderRemoveButton($listing['id']);
           echo "</td></tr>";
-          }
+		}
+		if(empty($choices) || in_array($type, ['optical', 'storage'])){
+			echo "<tr>
+	          <th scope=\"row\">{$type}</th>
+	          <td>";
+	          	PageRenderer::renderViewButton($type);
+		        echo "</td>
+		          <td></td>
+		          <td></td>
+		          <td></td>
+		          <td></td>
+		        </tr>";
+	    }
           
 	}
 	public static function renderSizeWithUnit($size){
