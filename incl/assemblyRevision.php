@@ -34,6 +34,10 @@ class AssemblyRevision {
     public function getAssemblyName(){
         return $this->assemblyName;
     }
+
+    public function getAssemblyID(){
+        return $this->assemblyID;
+    }
     
     public function getUsername(){
         return $this->username;

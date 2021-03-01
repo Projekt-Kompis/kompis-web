@@ -25,9 +25,8 @@ PageRenderer::renderHeader($db);
         PageRenderer::renderChoice($db, 'psu');
         PageRenderer::renderChoice($db, 'ram');
         PageRenderer::renderChoice($db, 'storage');
+        PageRenderer::renderChoiceFooter();
         ?>
-      </tbody>
-    </table>
     <?php PageRenderer::renderSaveButton(); ?>
   </div>
 </div>

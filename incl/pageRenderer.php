@@ -16,6 +16,7 @@ class PageRenderer {
 			    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
 
 			    <title>Kompiš</title>
+			    <link href="style/style.css" rel="stylesheet">
 			  </head>
 			  <body>
 			    <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -383,11 +384,48 @@ class PageRenderer {
 		$assemblyName = $assemblyRevision->getAssemblyName();
 		$assemblyListings = $assemblyRevision->getListingList();
 		$assemblyUsername = $assemblyRevision->getUsername();
-		echo "<h2>{$assemblyName}</h2><p><b>Autor:</b> {$assemblyUsername}";
+		$assemblyID = $assemblyRevision->getAssemblyID();
+		echo "<h2>{$assemblyName}</h2><p><b>Autor:</b> <a href=\"#\" class=\"author-link\">{$assemblyUsername}</a>";
 		PageRenderer::renderChoiceHeader();
 		foreach(MainLib::getPartTypes() as &$type){
 			PageRenderer::renderChoice($db, $type, $assemblyListings, false);
 		}
+		PageRenderer::renderChoiceFooter();
+		echo "<h3>Komentáře</h3>";
+		//PageRenderer::renderAssemblyCommentBox();
+		PageRenderer::renderAssemblyComments($db, $assemblyID);
+	}
+	public static function renderAssemblyComments($db, $assemblyID){
+		$comments = CommentManager::getAssemblyComments($db, $assemblyID);
+		foreach($comments as &$comment){ ?>
+		    	<div class="card p-3 m-2">
+				        <div class="comment-heading">
+				            <div class="comment-voting">
+				                <button type="button">
+				                    <span aria-hidden="true">&#9650;</span>
+				                    <span class="sr-only">Hlasovat pro</span>
+				                </button>
+				                <button type="button">
+				                    <span aria-hidden="true">&#9660;</span>
+				                    <span class="sr-only">Hlasovat proti</span>
+				                </button>
+				            </div>
+				            <div class="comment-info">
+				                <a href="#" class="author-link"><?= AccountManager::getUsername($db, $comment['account_id']) ?></a>
+				                <p class="m-0">
+				                    1 bod &bull; <?= $comment['time_created'] ?>
+				                </p>
+				            </div>
+				        </div>
+
+				        <div class="comment-body">
+				            <p>
+				                <?= htmlspecialchars($comment['text']) ?>
+				            </p>
+				            <button type="button" class="btn btn-primary">Odpovědět</button>
+				        </div>
+			    </div>
+		<?php }
 	}
 	public static function renderChoiceHeader(){ ?>
 		<table class="table">
@@ -402,5 +440,9 @@ class PageRenderer {
 	        </tr>
 	      </thead>
 	      <tbody>
+	<?php }
+	public static function renderChoiceFooter(){ ?>
+      </tbody>
+    </table>
 	<?php }
 }
