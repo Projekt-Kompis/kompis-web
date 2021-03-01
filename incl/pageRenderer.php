@@ -1,5 +1,6 @@
 <?php
 class PageRenderer {
+
 	public static function renderHeader($db){
 		session_start();
 		?>
@@ -105,6 +106,9 @@ class PageRenderer {
 	}
 	public static function renderRemoveButton($id){
 		echo "<form action=\"remove_listing.php\"><button type=\"submit\" class=\"btn btn-primary\" name=\"id\" value=\"$id\">Odebrat</button></form>";
+	}
+	public static function renderSaveButton(){
+		echo "<form action=\"save_assembly.php\"><button type=\"submit\" class=\"btn btn-primary\">Sdílet sestavu</button></form>";
 	}
 	public static function renderListingsHeader($type){
 		?>
@@ -253,8 +257,10 @@ class PageRenderer {
 
 		<?php
 	}
-	public static function renderCurrentChoice($db, $type){
-		$choices = MainLib::getCurrentChoicesInfo($db, $type);
+	public static function renderChoice($db, $type, $choiceArray = null, $renderButtons = true){
+		if(!isset($choiceArray))
+			$choiceArray = MainLib::getCurrentChoiceArray($type);
+		$choices = MainLib::getChoicesInfo($db, $type, $choiceArray);
 		foreach($choices as &$listing){
 			echo "<tr>
           <th scope=\"row\">{$type}</th>
@@ -263,10 +269,11 @@ class PageRenderer {
           <td>{$listing['store']}</td>
           <td><a href=\"{$listing['store_url']}\">&gt;&gt;</a></td>
           <td>";
-          PageRenderer::renderRemoveButton($listing['id']);
+          if($renderButtons == true)
+          	PageRenderer::renderRemoveButton($listing['id']);
           echo "</td></tr>";
 		}
-		if(empty($choices) || in_array($type, ['optical', 'storage'])){
+		if((empty($choices) || in_array($type, ['optical', 'storage'])) && $renderButtons){
 			echo "<tr>
 	          <th scope=\"row\">{$type}</th>
 	          <td>";
@@ -310,6 +317,38 @@ class PageRenderer {
             </div>
             <button type="submit" class="btn btn-primary">Vytvořit účet</button>
           </form>
+	<?php } //TODO (for below): render warnings - assembly empty, assembly incomplete, incompatible parts etc.
+	public static function renderSaveForm(){ ?>
+		<form method="post">
+            <div class="mb-3">
+              <label for="nameForm" class="form-label">Název sestavy</label>
+              <input type="text" class="form-control" id="nameForm" name="name">
+            </div>
+            <div class="mb-3">
+	            <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+				  <input type="radio" class="btn-check" name="visibility" id="publicRadio" autocomplete="off" value="public" checked>
+				  <label class="btn btn-outline-primary" for="publicRadio">Veřejná</label>
+
+				  <input type="radio" class="btn-check" name="visibility" id="unlistedRadio" autocomplete="off" value="unlisted">
+				  <label class="btn btn-outline-primary" for="unlistedRadio">Neveřejná</label>
+
+				  <input type="radio" class="btn-check" name="visibility" id="privateRadio" autocomplete="off" value="private">
+				  <label class="btn btn-outline-primary" for="privateRadio">Soukromá</label>
+				</div>
+			</div>
+			<?php if(!AccountManager::isAccountLoggedIn()){ ?>
+            <div class="mb-3">
+				<div class="card">
+			        <div class="card-body">
+			          <b>Varování:</b> Nejste přihlášeni, sestavu již nebude možné upravit.
+			        </div>
+		      </div>
+		  </div>
+		<?php } ?>
+          <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Sdílet sestavu</button>
+        </div>
+          </form>
 	<?php }
 	public static function renderRegistrationResponse($db, $username, $email, $password){
 		switch(AccountManager::createAccount($db, $username, $email, $password)){
@@ -328,4 +367,39 @@ class PageRenderer {
 		}
 
 	}
+	public static function renderSaveResponse($db, $name, $visibility, $parts){
+		$assemblyID = AssemblyManager::createAssembly($db, $name, $visibility, $parts);
+		if($assemblyID <= 0)
+			echo "Něco se zvrtlo.";
+		else
+			echo "Vaše sestava je nyní dostupná <a href=\"view_assembly.php?id={$assemblyID}\">zde</a>.";
+
+	}
+	public static function renderAssembly($db, $assemblyID){
+		PageRenderer::renderAssemblyRevision($db, AssemblyManager::getLatestRevisionID($db, $assemblyID));
+	}
+	public static function renderAssemblyRevision($db, $assemblyRevisionID){
+		$assemblyRevision = new AssemblyRevision($db, $assemblyRevisionID);
+		$assemblyName = $assemblyRevision->getAssemblyName();
+		$assemblyListings = $assemblyRevision->getListingList();
+		echo "<h2>{$assemblyName}</h2>";
+		PageRenderer::renderChoiceHeader();
+		foreach(MainLib::getPartTypes() as &$type){
+			PageRenderer::renderChoice($db, $type, $assemblyListings, false);
+		}
+	}
+	public static function renderChoiceHeader(){ ?>
+		<table class="table">
+	      <thead>
+	        <tr>
+	          <th scope="col">Komponenta</th>
+	          <th scope="col">Výběr</th>
+	          <th scope="col">Cena</th>
+	          <th scope="col">Obchod</th>
+	          <th scope="col">Odkaz</th>
+	          <th scope="col"></th>
+	        </tr>
+	      </thead>
+	      <tbody>
+	<?php }
 }

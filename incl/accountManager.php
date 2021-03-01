@@ -32,8 +32,11 @@ class AccountManager {
 			return -3; //invalid password
 		return -1; //fallback
 	}
+	public static function getLoggedinAccountID(){
+		return $_SESSION['accountID'];
+	}
 	public static function getLoggedinUsername($db){
-		return AccountManager::getUsername($db, $_SESSION['accountID']);
+		return AccountManager::getUsername($db, AccountManager::getLoggedinAccountID());
 	}
 	public static function getUsername($db, $id){
 		$username = $db->prepare("SELECT username FROM account WHERE id = :id");

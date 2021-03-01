@@ -1,5 +1,8 @@
 <?php
 class MainLib {
+	public static function getPartTypes(){
+		return ['case', 'cpu', 'gpu', 'motherboard', 'optical', 'os', 'psu', 'ram', 'storage'];
+	}
 	public static function getListingType($db, $id){
 		$type = $db->prepare("SELECT part.type
 			FROM listing
@@ -41,19 +44,19 @@ class MainLib {
 
 		$motherboards = MainLib::getCurrentChoicesInfo($db, 'motherboard');
 		if($motherboards)
-			foreach($motherboard as &$motherboards){
+			foreach($motherboards as &$motherboard){
 				$tdp += 70;
 			}
 
 		$rams = MainLib::getCurrentChoicesInfo($db, 'ram');
 		if($rams)
-			foreach($ram as &$rams){
+			foreach($rams as &$ram){
 				$tdp += 20;
 			}
 
 		$storages = MainLib::getCurrentChoicesInfo($db, 'storage');
-		if($rams)
-			foreach($storage as &$storages){
+		if($storages)
+			foreach($storages as &$storage){
 				$storage = new Storage($db, MainLib::getPartIDFromListing($db, $storage['id']));
 				$tdp += 10 + round($storage->getRPM() / 1080);
 			}
@@ -63,6 +66,9 @@ class MainLib {
 	}
 	public static function getCurrentChoicesInfo($db, $type, $single = false){
 		$choicesArray = MainLib::getCurrentChoiceArray($type);
+		return MainLib::getChoicesInfo($db, $type, $choicesArray, $single);
+	}
+	public static function getChoicesInfo($db, $type, $choicesArray, $single = false){
 		if(empty($choicesArray))
 			return [];
 		$choices = implode(',', $choicesArray);
@@ -77,7 +83,7 @@ class MainLib {
 		$choice = MainLib::getCurrentChoicesInfo($db, $type, true);
 		if(empty($choice))
 			return false;
-		return $choice['id'];
+		return $choice[0]['id'];
 	}
 	public static function getListings($db, $type, $incompatible = false){
 		$tables = ['case' => 'part_case', 'cpu' => 'part_cpu', 'gpu' => 'part_gpu', 'motherboard' => 'part_motherboard', 'optical' => 'part_optical', 'os' => 'part_os', 'psu' => 'part_psu', 'ram' => 'part_ram', 'storage' => 'part_storage'];
@@ -119,7 +125,7 @@ class MainLib {
 				$ram = MainLib::getCurrentChoiceID($db, 'ram');
 				if($ram){
 					$ram = new RAM($db, MainLib::getPartIDFromListing($db, $ram));
-					$where .= "AND part_motherboard.ddr_version = :ddr_version ";
+					$where .= "AND part_motherboard.ddr_version = :ddrVersion ";
 					$pdoArray['ddrVersion'] = $ram->getDDRVersion();
 				}
 				$typespecific = ", part_motherboard.motherboard_form_factor, part_motherboard.cpu_socket, part_motherboard.ddr_version";

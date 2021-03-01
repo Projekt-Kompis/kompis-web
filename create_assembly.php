@@ -14,31 +14,21 @@ PageRenderer::renderHeader($db);
     </p>
   </div>
   <div class="row fill d-flex justify-content-start content buffer">
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Komponenta</th>
-          <th scope="col">Výběr</th>
-          <th scope="col">Cena</th>
-          <th scope="col">Obchod</th>
-          <th scope="col">Odkaz</th>
-          <th scope="col"></th>
-        </tr>
-      </thead>
-      <tbody>
         <?php
-        PageRenderer::renderCurrentChoice($db, 'case');
-        PageRenderer::renderCurrentChoice($db, 'cpu');
-        PageRenderer::renderCurrentChoice($db, 'gpu');
-        PageRenderer::renderCurrentChoice($db, 'motherboard');
-        PageRenderer::renderCurrentChoice($db, 'optical');
-        PageRenderer::renderCurrentChoice($db, 'os');
-        PageRenderer::renderCurrentChoice($db, 'psu');
-        PageRenderer::renderCurrentChoice($db, 'ram');
-        PageRenderer::renderCurrentChoice($db, 'storage');
+        PageRenderer::renderChoiceHeader();
+        PageRenderer::renderChoice($db, 'case');
+        PageRenderer::renderChoice($db, 'cpu');
+        PageRenderer::renderChoice($db, 'gpu');
+        PageRenderer::renderChoice($db, 'motherboard');
+        PageRenderer::renderChoice($db, 'optical');
+        PageRenderer::renderChoice($db, 'os');
+        PageRenderer::renderChoice($db, 'psu');
+        PageRenderer::renderChoice($db, 'ram');
+        PageRenderer::renderChoice($db, 'storage');
         ?>
       </tbody>
     </table>
+    <?php PageRenderer::renderSaveButton(); ?>
   </div>
 </div>
 <?php
