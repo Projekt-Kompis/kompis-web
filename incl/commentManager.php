@@ -18,4 +18,20 @@ class CommentManager {
 		$username->execute([':id' => $id]);
 		return $username->fetchAll();
 	}
+	public static function createAssemblyComment($db, $accountID, $assemblyID, $text){
+		$query = $db->prepare("INSERT INTO assembly_comment (account_id, assembly_id)
+		VALUES (:accountID, :assemblyID)");
+		$query->execute([':accountID' => $accountID, ':assemblyID' => $assemblyID]);
+		$id = $db->lastInsertID();
+		if(CommentManager::updateAssemblyComment($db, $id, $text))
+			return $id;
+		return null;
+	}
+	public static function updateAssemblyComment($db, $commentID, $text){
+		$query = $db->prepare("INSERT INTO assembly_comment_revision (comment_id, text)
+		VALUES (:commentID, :text)");
+		$query->execute([':commentID' => $commentID, ':text' => $text]);
+		$id = $db->lastInsertID();
+		return $id;
+	}
 }

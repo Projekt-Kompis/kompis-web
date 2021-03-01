@@ -392,7 +392,7 @@ class PageRenderer {
 		}
 		PageRenderer::renderChoiceFooter();
 		echo "<h3>Komentáře</h3>";
-		//PageRenderer::renderAssemblyCommentBox();
+		PageRenderer::renderAssemblyCommentBox($assemblyID);
 		PageRenderer::renderAssemblyComments($db, $assemblyID);
 	}
 	public static function renderAssemblyComments($db, $assemblyID){
@@ -424,6 +424,22 @@ class PageRenderer {
 				            </p>
 				            <button type="button" class="btn btn-primary">Odpovědět</button>
 				        </div>
+			    </div>
+		<?php }
+	}
+	public static function renderAssemblyCommentBox($assemblyID){
+		if(AccountManager::isAccountLoggedIn()){ ?>
+		    	<div class="card p-3 m-2">
+				        <form method="post" action="add_comment.php">
+          				  <input type="hidden" name="id" value="<?php echo $assemblyID; ?>">
+						  <div class="form-group p-2">
+						    <label for="contentForm"><b>Přidat komentář</b></label>
+						    <textarea class="form-control" id="contentForm" rows="3" name="content"></textarea>
+						  </div>
+						  <div class="p-2">
+						  	<button type="submit" class="btn btn-primary">Přidat</button>
+						  </div>
+						</form>
 			    </div>
 		<?php }
 	}
