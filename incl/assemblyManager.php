@@ -31,4 +31,15 @@ class AssemblyManager {
 			return false;
 		return $username->fetchColumn();
 	}
+	public static function getAssemblyList($db){
+		$assemblyArray = [];
+		$listings = $db->prepare("SELECT assembly.id
+			FROM assembly
+			WHERE visibility = 'public'
+			ORDER BY points_average_weighted DESC, points_average DESC");
+		$listings->execute();
+		foreach($listings->fetchAll() as &$assembly)
+			$assemblyArray[] = $assembly['id'];
+		return $assemblyArray;
+	}
 }
