@@ -21,7 +21,10 @@ class AssemblyRevision {
         $this->assemblyID = $assembly['id'];
         $this->assemblyName = $assembly['name'];
         $this->accountID = $assembly['account_id'];
-        $this->username = AccountManager::getUsername($this->db, $this->accountID);
+        if($this->accountID != null)
+            $this->username = AccountManager::getUsername($this->db, $this->accountID);
+        else
+            $this->username = "Neznámý"; //TODO: not have the Czech string hardcoded here
     }
 
     public function getID(){
