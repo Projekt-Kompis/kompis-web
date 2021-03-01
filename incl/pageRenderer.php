@@ -382,7 +382,8 @@ class PageRenderer {
 		$assemblyRevision = new AssemblyRevision($db, $assemblyRevisionID);
 		$assemblyName = $assemblyRevision->getAssemblyName();
 		$assemblyListings = $assemblyRevision->getListingList();
-		echo "<h2>{$assemblyName}</h2>";
+		$assemblyUsername = $assemblyRevision->getUsername();
+		echo "<h2>{$assemblyName}</h2><p><b>Autor:</b> {$assemblyUsername}";
 		PageRenderer::renderChoiceHeader();
 		foreach(MainLib::getPartTypes() as &$type){
 			PageRenderer::renderChoice($db, $type, $assemblyListings, false);

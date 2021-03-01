@@ -4,13 +4,15 @@ class AssemblyRevision {
     protected $db;
     protected $assemblyID;
     protected $assemblyName;
+    protected $accountID;
+    protected $username;
     protected $listings;
 
     public function __construct($db, $id) {
         $this->id = $id;
         $this->db = $db;
 
-        $assembly = $db->prepare("SELECT assembly.id, assembly.name
+        $assembly = $db->prepare("SELECT assembly.id, assembly.name, assembly.account_id
             FROM assembly
             INNER JOIN assembly_revision ON assembly.id = assembly_revision.assembly_id
             WHERE assembly_revision.id = :id");
@@ -18,6 +20,8 @@ class AssemblyRevision {
         $assembly = $assembly->fetch();
         $this->assemblyID = $assembly['id'];
         $this->assemblyName = $assembly['name'];
+        $this->accountID = $assembly['account_id'];
+        $this->username = AccountManager::getUsername($this->db, $this->accountID);
     }
 
     public function getID(){
@@ -26,6 +30,10 @@ class AssemblyRevision {
 
     public function getAssemblyName(){
         return $this->assemblyName;
+    }
+    
+    public function getUsername(){
+        return $this->username;
     }
 
     public function getListingList(){
