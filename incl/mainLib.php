@@ -145,8 +145,8 @@ class MainLib {
 				$motherboard = MainLib::getCurrentChoiceID($db, 'motherboard');
 				if($motherboard){
 					$motherboard = new Motherboard($db, MainLib::getPartIDFromListing($db, $motherboard));
-					$where = "AND part_ram.ddr_version = :ddr_version ";
-					$pdoArray['ddrVersion'] = $ram->getDDRVersion();
+					$where = "AND part_ram.ddr_version = :ddrVersion ";
+					$pdoArray['ddrVersion'] = $motherboard->getDDRVersion();
 				}
 				$typespecific = ", part_ram.size, part_ram.ddr_version, part_ram.speed";
 				break;
