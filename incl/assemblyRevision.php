@@ -65,6 +65,13 @@ class AssemblyRevision {
         }
 		return $this->listings;
     }
+    public function getAccountRating($accountID){
+        $rating = $this->db->prepare("SELECT points FROM assembly_rating WHERE account_id = :accountID AND assembly_id = :assemblyID");
+        $rating->execute([':accountID' => $accountID, ':assemblyID' => $this->assemblyID]);
+        if($rating->rowCount() < 1)
+            return 0;
+        return $rating->fetchColumn();
+    }
     public function getPrice(){
         if(!isset($this->price)){
             $price = $this->db->prepare("

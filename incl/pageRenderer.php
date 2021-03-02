@@ -390,7 +390,10 @@ class PageRenderer {
 		$assemblyListings = $assemblyRevision->getListingList();
 		$assemblyUsername = $assemblyRevision->getUsername();
 		$assemblyID = $assemblyRevision->getAssemblyID();
-		echo "<h2>{$assemblyName}</h2><p><b>Autor:</b> <a href=\"#\" class=\"author-link\">{$assemblyUsername}</a>";
+		$renderableStars = PageRenderer::prepareStarRating($assemblyRevision->getPointsAverage());
+		if(AccountManager::isAccountLoggedIn())
+			$renderableStars .= " (Vaše hodnocení: " . PageRenderer::prepareStarRating($assemblyRevision->getAccountRating(AccountManager::getLoggedinAccountID()), true, $assemblyRevision->getAssemblyID()) . ")";
+		echo "<h2 class=\"mt-2\">{$assemblyName}</h2><p><b>Autor:</b> <a href=\"#\" class=\"author-link\">{$assemblyUsername}</a><br><b>Hodnocení:</b> {$renderableStars}</b></p>";
 		PageRenderer::renderChoiceHeader();
 		foreach(MainLib::getPartTypes() as &$type){
 			PageRenderer::renderChoice($db, $type, $assemblyListings, false);
@@ -511,13 +514,16 @@ class PageRenderer {
 	          <td>{$assemblyRevision->getPrice()}</td>
 	        </tr>";
 	}
-	public static function prepareStarRating($points){
+	public static function prepareStarRating($points, $clickable = false, $assemblyID = 0){
 		$rating = "";
 		for($i = 1; $i <= 5; $i++){
 			$checked = "";
 			if($points >= $i)
 				$checked = "checked";
-			$rating .= "<span class=\"fa fa-star {$checked}\"></span>";
+			if($clickable)
+				$rating .= "<a href=\"rate_assembly.php?id={$assemblyID}&points={$i}\" class=\"star-clickable-link\"><span class=\"fa fa-star star-clickable {$checked}\"></span></a>";
+			else
+				$rating .= "<span class=\"fa fa-star {$checked}\"></span>";
 		}
 		return $rating;
 	}

@@ -44,3 +44,9 @@
 .checked {
   color: orange;
 }
+.star-clickable-link:{
+    color: #000;
+}
+.star-clickable:hover {
+    color: #0F0; !important
+}
