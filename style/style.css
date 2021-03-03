@@ -50,3 +50,7 @@
 .star-clickable:hover {
     color: #0F0; !important
 }
+.form-float {
+     float: left;
+     padding: 1px;
+}

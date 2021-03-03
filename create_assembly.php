@@ -27,7 +27,7 @@ PageRenderer::renderHeader($db);
         PageRenderer::renderChoice($db, 'storage');
         PageRenderer::renderChoiceFooter();
         ?>
-    <?php PageRenderer::renderSaveButton(); ?>
+    <?php PageRenderer::renderCreateButtons(); ?>
   </div>
 </div>
 <?php

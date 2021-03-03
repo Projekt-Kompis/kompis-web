@@ -8,8 +8,10 @@ PageRenderer::renderHeader($db);
       <div class="card" style="max-width: 400px;">
         <div class="card-body">
           <?php
-            if((isset($_POST['name']) && !empty($_POST['name'])) && (isset($_POST['visibility']) && !empty($_POST['visibility']) && in_array($_POST['visibility'],['private','unlisted','public'])))
-              PageRenderer::renderSaveResponse($db, $_POST['name'], $_POST['visibility'], $_SESSION['part']);
+            if((isset($_POST['name']) && !empty($_POST['name'])) && (isset($_POST['visibility']) && !empty($_POST['visibility']) && in_array($_POST['visibility'],['private','unlisted','public']))){
+              if(PageRenderer::renderSaveResponse($db, $_POST['name'], $_POST['visibility'], $_SESSION['part']))
+                $_SESSION['part'] = [];
+            }
             else
               PageRenderer::renderSaveForm();
             ?>

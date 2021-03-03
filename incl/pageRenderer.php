@@ -113,9 +113,16 @@ class PageRenderer {
 	public static function renderRemoveButton($id){
 		echo "<form action=\"remove_listing.php\"><button type=\"submit\" class=\"btn btn-primary\" name=\"id\" value=\"$id\">Odebrat</button></form>";
 	}
-	public static function renderSaveButton(){
-		echo "<form action=\"save_assembly.php\"><button type=\"submit\" class=\"btn btn-primary\">Sdílet sestavu</button></form>";
-	}
+	public static function renderCreateButtons(){ ?>
+		<div class="form-group">
+		<form class='form-float' action="save_assembly.php">
+		<button type="submit" class="btn btn-primary">Sdílet sestavu</button>
+		</form>
+		<form class='form-float' action="delete_listings.php">
+		<button type="submit" class="btn btn-primary">Začít odznova</button>
+		</form>
+		</div>
+	<?php }
 	public static function renderListingsHeader($type){
 		?>
 
@@ -375,10 +382,14 @@ class PageRenderer {
 	}
 	public static function renderSaveResponse($db, $name, $visibility, $parts){
 		$assemblyID = AssemblyManager::createAssembly($db, $name, $visibility, $parts);
-		if($assemblyID <= 0)
+		if($assemblyID <= 0){
 			echo "Něco se zvrtlo.";
-		else
+			return false;
+		}
+		else{
 			echo "Vaše sestava je nyní dostupná <a href=\"view_assembly.php?id={$assemblyID}\">zde</a>.";
+			return true;
+		}
 
 	}
 	public static function renderAssembly($db, $assemblyID){
@@ -511,7 +522,7 @@ class PageRenderer {
 	          <td>{$assemblyRevision->getUsername()}</td>
 	          <td>{$assemblyRevision->getTimeCreated()}</td>
 	          <td>{$renderableStars}</td>
-	          <td>{$assemblyRevision->getPrice()}</td>
+	          <td>{$assemblyRevision->getPrice()} Kč</td>
 	        </tr>";
 	}
 	public static function prepareStarRating($points, $clickable = false, $assemblyID = 0){
