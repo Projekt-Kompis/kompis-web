@@ -25,6 +25,9 @@ class CPU {
             FROM part_cpu
             WHERE part_cpu.part_id = :id");
         $type->execute(['id' => $this->id]);
-        return $type->fetchColumn();
+        $tdp = $type->fetchColumn();
+        if($tdp == 0)
+            return 40;
+        return $tdp;
     }
 }

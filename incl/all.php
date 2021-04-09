@@ -11,3 +11,4 @@ include "incl/accountManager.php";
 include "incl/assemblyManager.php";
 include "incl/assemblyRevision.php";
 include "incl/commentManager.php";
+include "incl/os.php";

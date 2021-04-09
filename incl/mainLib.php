@@ -26,7 +26,7 @@ class MainLib {
 			$partarray[] = preg_replace('[^0-9]', '', $part);
 		return $partarray;
 	}
-	public static function getTotalTDP($db){
+	public static function getTotalTDP($db){ //TODO: default values when 0, add optical
 		$tdp = 0;
 		$cpus = MainLib::getCurrentChoicesInfo($db, 'cpu');
 		if($cpus)
@@ -68,11 +68,93 @@ class MainLib {
 		$choicesArray = MainLib::getCurrentChoiceArray($type);
 		return MainLib::getChoicesInfo($db, $type, $choicesArray, $single);
 	}
+	public static function getReplacementChoice($db, $listingID){
+		$listing = $db->prepare("SELECT part.type, part.id
+			FROM listing
+			INNER JOIN part ON listing.part_id = part.id
+			WHERE listing.id = :listing");
+		$listing->execute(['listing' => $listingID]);
+		$listing = $listing->fetch();
+		switch($listing['type']){
+			case "cpu":
+			case "gpu":
+				$newListing = $db->prepare("SELECT listing.id
+					FROM listing
+					INNER JOIN part ON listing.part_id = part.id
+					WHERE part.id = :partID
+					AND listing.is_invalid = 0
+					AND price > 10
+					ORDER BY price ASC
+					LIMIT 1");
+				$newListing->execute(['partID' => $listing['id']]);
+				if($newListing->rowCount() < 1)
+					return false;
+				return $newListing->fetchColumn();
+				break;
+			case "os":
+				$os = new OS($db, $listing['id']);
+				$newListing = $db->prepare("SELECT listing.id
+					FROM listing
+					INNER JOIN part ON listing.part_id = part.id
+					INNER JOIN part_os ON part_os.part_id = part.id
+					WHERE part_os.invoice = :invoice
+					AND listing.is_invalid = 0
+					AND price > 10
+					AND name LIKE '%windows 10%'
+					ORDER BY price ASC
+					LIMIT 1");
+				$newListing->execute(['invoice' => $os->getInvoice()]);
+				if($newListing->rowCount() < 1)
+					return false;
+				return $newListing->fetchColumn();
+			case "ram":
+				$ram = new RAM($db, $listing['id']);
+				$newListing = $db->prepare("SELECT listing.id
+					FROM listing
+					INNER JOIN part ON listing.part_id = part.id
+					INNER JOIN part_ram ON part_ram.part_id = part.id
+					WHERE part_ram.ddr_version = :ddr_version
+					AND part_ram.speed = :speed
+					AND part_ram.size = :size
+					AND listing.is_invalid = 0
+					AND price > 10
+					ORDER BY price ASC
+					LIMIT 1");
+				$newListing->execute(['ddr_version' => $ram->getDDRVersion(), 'speed' => $ram->getSpeed(), 'size' => $ram->getSize()]);
+				if($newListing->rowCount() < 1){
+					return false;
+				}
+				return $newListing->fetchColumn();
+				break;
+			case "storage":
+				$storage = new storage($db, $listing['id']);
+				$newListing = $db->prepare("SELECT listing.id
+					FROM listing
+					INNER JOIN part ON listing.part_id = part.id
+					INNER JOIN part_storage ON part_storage.part_id = part.id
+					WHERE part_storage.storage_type = :storage_type
+					AND part_storage.connector = :connector
+					AND part_storage.rpm = :rpm
+					AND part_storage.size = :size
+					AND listing.is_invalid = 0
+					AND price > 10
+					ORDER BY price ASC
+					LIMIT 1");
+				$newListing->execute(['storage_type' => $storage->getStorageType(), 'connector' => $storage->getConnector(), 'rpm' => $storage->getRPM(), 'size' => $storage->getSize()]);
+				if($newListing->rowCount() < 1){
+					return false;
+				}
+				return $newListing->fetchColumn();
+				break;
+			
+		}
+		return false;
+	}
 	public static function getChoicesInfo($db, $type, $choicesArray, $single = false){
 		if(empty($choicesArray))
 			return [];
 		$choices = implode(',', $choicesArray);
-		$listings = $db->prepare("SELECT part.model, listing.price, listing.store, listing.store_url, listing.id
+		$listings = $db->prepare("SELECT part.model, listing.price, listing.store, listing.store_url, listing.id, listing.is_invalid
 			FROM listing
 			INNER JOIN part ON listing.part_id = part.id
 			WHERE listing.id IN ($choices) AND type = :type ");
@@ -138,7 +220,7 @@ class MainLib {
 				break;
 			case 'psu':
 				$typespecific = ", part_psu.wattage";
-				$where .= "AND part_psu.wattage = :wattage ";
+				$where .= "AND part_psu.wattage >= :wattage ";
 				$pdoArray['wattage'] = MainLib::getTotalTDP($db);
 				break;
 			case 'ram':
@@ -158,11 +240,13 @@ class MainLib {
 			$where = "";
 			$pdoArray = [];
 		}
-		$listings = $db->prepare("SELECT part.model, part.type, listing.item_condition, listing.price, listing.store, listing.location, listing.id, listing.name {$typespecific}
+		$listings = $db->prepare("SELECT part.model, part.type, listing.item_condition, listing.price, listing.store, listing.location, listing.id, listing.name, listing.store_url, listing.listing_score {$typespecific}
 			FROM listing
 			INNER JOIN part ON listing.part_id = part.id
 			INNER JOIN {$tables[$type]} ON {$tables[$type]}.part_id = part.id
-			WHERE part.type = :type {$where}");
+			WHERE part.type = :type {$where}
+			AND is_invalid = 0
+			ORDER BY listing_score DESC");
 		$listings->execute(array_merge(['type' => $type], $pdoArray));
 		return $listings->fetchAll();
 	}

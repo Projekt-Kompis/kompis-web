@@ -17,6 +17,9 @@ class GPU {
             FROM part_gpu
             WHERE part_gpu.part_id = :id");
         $type->execute(['id' => $this->id]);
-        return $type->fetchColumn();
+        $tdp = $type->fetchColumn();
+        if($tdp == 0)
+            return 150;
+        return $tdp;
     }
 }

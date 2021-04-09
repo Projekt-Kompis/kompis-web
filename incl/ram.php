@@ -19,4 +19,20 @@ class RAM {
 		$type->execute(['id' => $this->id]);
 		return $type->fetchColumn();
     }
+
+    public function getSpeed(){
+        $type = $this->db->prepare("SELECT part_ram.speed
+            FROM part_ram
+            WHERE part_ram.part_id = :id");
+        $type->execute(['id' => $this->id]);
+        return $type->fetchColumn();
+    }
+
+    public function getSize(){
+        $type = $this->db->prepare("SELECT part_ram.size
+            FROM part_ram
+            WHERE part_ram.part_id = :id");
+        $type->execute(['id' => $this->id]);
+        return $type->fetchColumn();
+    }
 }

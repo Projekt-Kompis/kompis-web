@@ -187,13 +187,14 @@ class PageRenderer {
 		}
 	}
 	public static function renderListing($listing){
+		$renderablePrice = PageRenderer::preparePrice($listing['price']);
 		echo "<tr>
 			<th scope=\"row\">{$listing['model']}";
 		if($listing['model'] != $listing['name'])
 			echo "<br>({$listing['name']})";
 		echo "</th>
 	          <td>{$listing['item_condition']}</td>
-	          <td>{$listing['price']}</td>
+	          <td>{$renderablePrice}</td>
 	          <td>{$listing['store']}</td>
 	          <td>{$listing['location']}</td>";
 	    switch($listing['type']){
@@ -201,15 +202,11 @@ class PageRenderer {
 				echo "<td>{$listing['motherboard_form_factor']}</td>";
 				break;
 			case 'cpu':
-				if($listing['price'] != 0)
-					$ratio = round(($listing['userbenchmark_score'] / $listing['price']) * 1000);
-				else
-					$ratio = 0;
 				echo "<td>{$listing['cpu_socket']}</td>
 					<td>{$listing['frequency']}</td>
 					<td>{$listing['core_count']}</td>
 					<td>{$listing['tdp']}</td>
-					<td>{$ratio}</td>";
+					<td>{$listing['listing_score']}</td>";
 				break;
 			case 'gpu':
 				if($listing['price'] != 0)
@@ -248,7 +245,8 @@ class PageRenderer {
 					<td>{$listing['connector']}</td>";
 				break;
 		}
-	    echo "<td><a href=\"view_listing.php?id={$listing['id']}\">&gt;&gt;</td>";
+	    //echo "<td><a href=\"view_listing.php?id={$listing['id']}\">&gt;&gt;</td>";
+	    echo "<td><a href=\"{$listing['store_url']}\">&gt;&gt;</td>";
 	    echo "<td>";
 	    PageRenderer::renderAddButton($listing['id']);
 	    echo "</tr>";
@@ -270,15 +268,26 @@ class PageRenderer {
 
 		<?php
 	}
-	public static function renderChoice($db, $type, $choiceArray = null, $renderButtons = true){
+	public static function renderChoice($db, $type, $choiceArray = null, $renderButtons = true, $isReplacement = false){
 		if(!isset($choiceArray))
 			$choiceArray = MainLib::getCurrentChoiceArray($type);
 		$choices = MainLib::getChoicesInfo($db, $type, $choiceArray);
 		foreach($choices as &$listing){
-			echo "<tr>
+			$renderablePrice = PageRenderer::preparePrice($listing['price']);
+			if($listing['is_invalid'] == 1){
+				$replacement = MainLib::getReplacementChoice($db, $listing['id']);
+				if($replacement)
+					PageRenderer::renderChoice($db, $type, [$replacement], $renderButtons, true);
+				$trClass = ' class="choice-invalid"';
+			}
+			elseif($isReplacement)
+				$trClass = ' class="choice-replacement"';
+			else
+				$trClass = '';
+			echo "<tr{$trClass}>
           <th scope=\"row\">{$type}</th>
           <td>{$listing['model']}</td>
-          <td>{$listing['price']} Kč</td>
+          <td>{$renderablePrice}</td>
           <td>{$listing['store']}</td>
           <td><a href=\"{$listing['store_url']}\">&gt;&gt;</a></td>
           <td>";
@@ -286,7 +295,7 @@ class PageRenderer {
           	PageRenderer::renderRemoveButton($listing['id']);
           echo "</td></tr>";
 		}
-		if((empty($choices) || in_array($type, ['optical', 'storage'])) && $renderButtons){
+		if((empty($choices) || in_array($type, ['optical', 'storage', 'ram'])) && $renderButtons){ //TODO: check similar ram
 			echo "<tr>
 	          <th scope=\"row\">{$type}</th>
 	          <td>";
@@ -517,12 +526,13 @@ class PageRenderer {
 	public static function renderAssemblyInfo($db, $assemblyID){
 		$assemblyRevision = new AssemblyRevision($db, AssemblyManager::getLatestRevisionID($db, $assemblyID));
 		$renderableStars = PageRenderer::prepareStarRating($assemblyRevision->getPointsAverage());
+		$renderablePrice = PageRenderer::preparePrice($assemblyRevision->getPrice());
 		echo "<tr>
 	          <td><a href=\"view_assembly.php?id={$assemblyRevision->getAssemblyID()}\">{$assemblyRevision->getAssemblyName()}</a></td>
 	          <td>{$assemblyRevision->getUsername()}</td>
 	          <td>{$assemblyRevision->getTimeCreated()}</td>
 	          <td>{$renderableStars}</td>
-	          <td>{$assemblyRevision->getPrice()} Kč</td>
+	          <td>{$renderablePrice}</td>
 	        </tr>";
 	}
 	public static function prepareStarRating($points, $clickable = false, $assemblyID = 0){
@@ -537,5 +547,11 @@ class PageRenderer {
 				$rating .= "<span class=\"fa fa-star {$checked}\"></span>";
 		}
 		return $rating;
+	}
+	public static function preparePrice($price){
+		if($price > 10)
+			return "{$price} Kč";
+		else
+			return "<i>Dohodou</i>";
 	}
 }
