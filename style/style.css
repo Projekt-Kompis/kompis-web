@@ -54,3 +54,9 @@
      float: left;
      padding: 1px;
 }
+.choice-invalid {
+    background-color: red;
+}
+.choice-replacement {
+    background-color: lime;
+}

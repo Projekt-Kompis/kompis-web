@@ -1,7 +1,7 @@
 <?php
 class MainLib {
 	public static function getPartTypes(){
-		return ['case', 'cpu', 'gpu', 'motherboard', 'optical', 'os', 'psu', 'ram', 'storage'];
+		return ['case', 'cooler', 'cpu', 'gpu', 'motherboard', 'optical', 'os', 'psu', 'ram', 'storage'];
 	}
 	public static function getListingType($db, $id){
 		$type = $db->prepare("SELECT part.type
@@ -168,7 +168,7 @@ class MainLib {
 		return $choice[0]['id'];
 	}
 	public static function getListings($db, $type, $incompatible = false){
-		$tables = ['case' => 'part_case', 'cpu' => 'part_cpu', 'gpu' => 'part_gpu', 'motherboard' => 'part_motherboard', 'optical' => 'part_optical', 'os' => 'part_os', 'psu' => 'part_psu', 'ram' => 'part_ram', 'storage' => 'part_storage'];
+		$tables = ['case' => 'part_case', 'cooler' => 'part_cooler', 'cpu' => 'part_cpu', 'gpu' => 'part_gpu', 'motherboard' => 'part_motherboard', 'optical' => 'part_optical', 'os' => 'part_os', 'psu' => 'part_psu', 'ram' => 'part_ram', 'storage' => 'part_storage'];
 		if(!isset($tables[$type]))
 			return false;
 
@@ -192,6 +192,15 @@ class MainLib {
 					$pdoArray['cpuSocket'] = $motherboard->getCPUSocket();
 				}
 				$typespecific = ", part_cpu.cpu_socket, part_cpu.frequency, part_cpu.core_count, part_cpu.tdp, part_cpu.userbenchmark_score";
+				break;
+			case 'cooler':
+				$cpu = MainLib::getCurrentChoiceID($db, 'cpu');
+				if($cpu){
+					$cpu = new CPU($db, MainLib::getPartIDFromListing($db, $cpu));
+					$where = "AND part_cooler.cpu_socket = :cpuSocket ";
+					$pdoArray['cpuSocket'] = $cpu->getCPUSocket();
+				}
+				$typespecific = ", part_cooler.cpu_socket";
 				break;
 			case 'gpu':
 				$typespecific = ", part_gpu.vram, part_gpu.tdp, part_gpu.userbenchmark_score";

@@ -7,8 +7,8 @@ PageRenderer::renderHeader($db);
     <p>
       <div class="card">
         <div class="card-body">
-          <b>Kompatibilita:</b> Žádné problémy s kompatibilitou nebyly detekovány. (protože to ještě neumíme lol)<br>
-          <b>TDP:</b> <?php echo MainLib::getTotalTDP($db); ?> W
+          <b>Kompatibilita:</b> Žádné problémy s kompatibilitou nebyly detekovány.<br>
+          <b>Potřebný výkon zdroje:</b> <?php echo MainLib::getTotalTDP($db); ?> W
         </div>
       </div>
     </p>
@@ -16,15 +16,8 @@ PageRenderer::renderHeader($db);
   <div class="row fill d-flex justify-content-start content buffer">
         <?php
         PageRenderer::renderChoiceHeader();
-        PageRenderer::renderChoice($db, 'case');
-        PageRenderer::renderChoice($db, 'cpu');
-        PageRenderer::renderChoice($db, 'gpu');
-        PageRenderer::renderChoice($db, 'motherboard');
-        PageRenderer::renderChoice($db, 'optical');
-        PageRenderer::renderChoice($db, 'os');
-        PageRenderer::renderChoice($db, 'psu');
-        PageRenderer::renderChoice($db, 'ram');
-        PageRenderer::renderChoice($db, 'storage');
+        foreach(MainLib::getPartTypes() as &$partType)
+          PageRenderer::renderChoice($db, $partType);
         PageRenderer::renderChoiceFooter();
         ?>
     <?php PageRenderer::renderCreateButtons(); ?>

@@ -152,13 +152,16 @@ class PageRenderer {
 				echo '<th scope="col">Socket</th>';
 				echo '<th scope="col">Frekvence</th>';
 				echo '<th scope="col">Počet jader</th>';
-				echo '<th scope="col">TDP</th>';
+				echo '<th scope="col">Potřebný výkon zdroje</th>';
 				echo '<th scope="col">Cena/výkon</th>';
 				break;
 			case 'gpu':
 				echo '<th scope="col">Paměť</th>';
-				echo '<th scope="col">TDP</th>';
+				echo '<th scope="col">Potřebný výkon zdroje</th>';
 				echo '<th scope="col">Cena/výkon</th>';
+				break;
+			case 'cooler':
+				echo '<th scope="col">Socket</th>';
 				break;
 			case 'motherboard':
 				echo '<th scope="col">Druh základní desky</th>';
@@ -207,6 +210,9 @@ class PageRenderer {
 					<td>{$listing['core_count']}</td>
 					<td>{$listing['tdp']}</td>
 					<td>{$listing['listing_score']}</td>";
+				break;
+			case 'cooler':
+				echo "<td>{$listing['cpu_socket']}</td>";
 				break;
 			case 'gpu':
 				if($listing['price'] != 0)
@@ -269,6 +275,7 @@ class PageRenderer {
 		<?php
 	}
 	public static function renderChoice($db, $type, $choiceArray = null, $renderButtons = true, $isReplacement = false){
+		$readablePartTypes = ['case' => 'Skříň', 'cooler' => 'Chladič', 'cpu' => 'Procesor', 'gpu' => 'Grafická karta', 'motherboard' => 'Základní deska', 'optical' => 'Mechanika', 'os' => 'Operační systém', 'psu' => 'Zdroj', 'ram' => 'Paměť RAM', 'storage' => 'Úložiště'];
 		if(!isset($choiceArray))
 			$choiceArray = MainLib::getCurrentChoiceArray($type);
 		$choices = MainLib::getChoicesInfo($db, $type, $choiceArray);
@@ -285,7 +292,7 @@ class PageRenderer {
 			else
 				$trClass = '';
 			echo "<tr{$trClass}>
-          <th scope=\"row\">{$type}</th>
+          <th scope=\"row\">{$readablePartTypes[$type]}</th>
           <td>{$listing['model']}</td>
           <td>{$renderablePrice}</td>
           <td>{$listing['store']}</td>
@@ -297,7 +304,7 @@ class PageRenderer {
 		}
 		if((empty($choices) || in_array($type, ['optical', 'storage', 'ram'])) && $renderButtons){ //TODO: check similar ram
 			echo "<tr>
-	          <th scope=\"row\">{$type}</th>
+	          <th scope=\"row\">{$readablePartTypes[$type]}</th>
 	          <td>";
 	          	PageRenderer::renderViewButton($type);
 		        echo "</td>
@@ -328,14 +335,14 @@ class PageRenderer {
               <input type="text" class="form-control" id="usernameForm" name="username">
             </div>
             <div class="mb-3">
-              <label for="emailForm" class="form-label">Emailová adresa</label>
+              <label for="emailForm" class="form-label">E-mailová adresa</label>
               <input type="email" class="form-control" id="emailForm" aria-describedby="emailHelp" name="email">
-              <div id="emailHelp" class="form-text">Vaše emailová adresa nebude sdílena s Minecrafákem.</div>
+              <div id="emailHelp" class="form-text">Vaše e-mailová adresa nebude s nikým sdílena.</div>
             </div>
             <div class="mb-3">
               <label for="passwordForm" class="form-label">Heslo</label>
               <input type="password" class="form-control" id="passwordForm" aria-describedby="passwordHelp" name="password">
-              <div id="passwordHelp" class="form-text">Doporučujeme něco bezpečného. (třeba ABCabc123)</div>
+              <div id="passwordHelp" class="form-text">Doporučujeme něco bezpečného. (např. ABCabc123)</div>
             </div>
             <button type="submit" class="btn btn-primary">Vytvořit účet</button>
           </form>
@@ -354,8 +361,8 @@ class PageRenderer {
 				  <input type="radio" class="btn-check" name="visibility" id="unlistedRadio" autocomplete="off" value="unlisted">
 				  <label class="btn btn-outline-primary" for="unlistedRadio">Neveřejná</label>
 
-				  <input type="radio" class="btn-check" name="visibility" id="privateRadio" autocomplete="off" value="private">
-				  <label class="btn btn-outline-primary" for="privateRadio">Soukromá</label>
+				  <!--<input type="radio" class="btn-check" name="visibility" id="privateRadio" autocomplete="off" value="private">
+				  <label class="btn btn-outline-primary" for="privateRadio">Soukromá</label>-->
 				</div>
 			</div>
 			<?php if(!AccountManager::isAccountLoggedIn()){ ?>
@@ -428,7 +435,7 @@ class PageRenderer {
 		foreach($comments as &$comment){ ?>
 		    	<div class="card p-3 m-2">
 				        <div class="comment-heading">
-				            <div class="comment-voting">
+				            <!--<div class="comment-voting">
 				                <button type="button">
 				                    <span aria-hidden="true">&#9650;</span>
 				                    <span class="sr-only">Hlasovat pro</span>
@@ -437,11 +444,11 @@ class PageRenderer {
 				                    <span aria-hidden="true">&#9660;</span>
 				                    <span class="sr-only">Hlasovat proti</span>
 				                </button>
-				            </div>
+				            </div>-->
 				            <div class="comment-info">
 				                <a href="#" class="author-link"><?= AccountManager::getUsername($db, $comment['account_id']) ?></a>
 				                <p class="m-0">
-				                    1 bod &bull; <?= $comment['time_created'] ?>
+				                    <!--1 bod &bull; --><?= $comment['time_created'] ?>
 				                </p>
 				            </div>
 				        </div>
@@ -450,7 +457,7 @@ class PageRenderer {
 				            <p>
 				                <?= htmlspecialchars($comment['text']) ?>
 				            </p>
-				            <button type="button" class="btn btn-primary">Odpovědět</button>
+				            <!--<button type="button" class="btn btn-primary">Odpovědět</button>-->
 				        </div>
 			    </div>
 		<?php }
